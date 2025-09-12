@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -32,17 +33,20 @@ import {
   Search, 
   Edit, 
   Trash2, 
-  AlertTriangle
+  AlertTriangle,
+  Globe
 } from 'lucide-react'
-import { mockUsers, mockDelay } from '@/data/mock-data'
+import { mockUsers, mockDomains, mockDelay } from '@/data/mock-data'
 import type { User, UserFormData } from '@/types/domain'
 
 export default function Users() {
+  const navigate = useNavigate()
   const [users, setUsers] = useState(mockUsers)
   const [loading, setLoading] = useState(false)
   const [searchKeyword, setSearchKeyword] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [selectedUsers, setSelectedUsers] = useState<number[]>([])
+  const [viewingUserDomains, setViewingUserDomains] = useState<User | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [formData, setFormData] = useState<UserFormData>({
@@ -67,6 +71,24 @@ export default function Users() {
     setLoading(true)
     await mockDelay(300)
     setLoading(false)
+  }
+
+  // 获取用户的域名
+  const getUserDomains = (userId: number) => {
+    return mockDomains.filter(domain => domain.userId === userId)
+  }
+
+  // 查看用户域名
+  const handleViewUserDomains = (user: User) => {
+    setViewingUserDomains(user)
+  }
+
+  // 跳转到DNS管理页面并筛选指定域名
+  const handleViewDomainDns = (domainId: number, domainName: string) => {
+    // 关闭当前对话框
+    setViewingUserDomains(null)
+    // 跳转到DNS管理页面，并传递域名ID作为查询参数
+    navigate(`/admin/dns?domainId=${domainId}&domainName=${encodeURIComponent(domainName)}`)
   }
 
   // 处理创建/编辑用户
@@ -361,6 +383,15 @@ export default function Users() {
                       <Button
                         variant="ghost"
                         size="sm"
+                        onClick={() => handleViewUserDomains(user)}
+                        disabled={loading}
+                        title="查看域名"
+                      >
+                        <Globe className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => handleEdit(user)}
                         disabled={loading}
                       >
@@ -390,6 +421,82 @@ export default function Users() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* 查看用户域名对话框 */}
+      <Dialog open={!!viewingUserDomains} onOpenChange={() => setViewingUserDomains(null)}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>
+              {viewingUserDomains?.username} 的域名列表
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {viewingUserDomains && (
+              <>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">
+                    共 {getUserDomains(viewingUserDomains.id).length} 个域名
+                  </span>
+                </div>
+                <div className="border rounded-lg">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>域名</TableHead>
+                        <TableHead>状态</TableHead>
+                        <TableHead>注册时间</TableHead>
+                        <TableHead>到期时间</TableHead>
+                        <TableHead>自动续费</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {getUserDomains(viewingUserDomains.id).length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                            该用户暂无注册域名
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        getUserDomains(viewingUserDomains.id).map((domain) => (
+                          <TableRow key={domain.id}>
+                            <TableCell className="font-medium">
+                              <Button
+                                variant="link"
+                                className="p-0 h-auto font-medium text-blue-600 hover:text-blue-800"
+                                onClick={() => handleViewDomainDns(domain.id, domain.name)}
+                              >
+                                {domain.name}
+                              </Button>
+                            </TableCell>
+                            <TableCell>
+                              <Badge 
+                                variant={
+                                  domain.status === 'active' ? 'default' : 
+                                  domain.status === 'expired' ? 'destructive' : 'secondary'
+                                }
+                              >
+                                {domain.status === 'active' ? '活跃' : 
+                                 domain.status === 'expired' ? '已过期' : '非活跃'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>{new Date(domain.registeredAt).toLocaleDateString()}</TableCell>
+                            <TableCell>{new Date(domain.expiresAt).toLocaleDateString()}</TableCell>
+                            <TableCell>
+                              <Badge variant={domain.autoRenew ? 'default' : 'secondary'}>
+                                {domain.autoRenew ? '已开启' : '已关闭'}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

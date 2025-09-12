@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -39,11 +40,13 @@ import { mockDnsRecords, mockDomains, mockDelay } from '@/data/mock-data'
 import type { DnsRecord, DnsRecordFormData } from '@/types/domain'
 
 export default function DnsRecords() {
+  const [searchParams] = useSearchParams()
   const [dnsRecords, setDnsRecords] = useState(mockDnsRecords)
   const [loading, setLoading] = useState(false)
   const [searchKeyword, setSearchKeyword] = useState('')
   const [typeFilter, setTypeFilter] = useState<string>('all')
   const [domainFilter, setDomainFilter] = useState<string>('')
+  const [selectedDomainName, setSelectedDomainName] = useState<string>('')
   const [selectedRecords, setSelectedRecords] = useState<number[]>([])
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingRecord, setEditingRecord] = useState<DnsRecord | null>(null)
@@ -55,6 +58,17 @@ export default function DnsRecords() {
     ttl: 300,
     priority: 0
   })
+
+  // 处理URL参数，自动筛选域名
+  useEffect(() => {
+    const domainId = searchParams.get('domainId')
+    const domainName = searchParams.get('domainName')
+    
+    if (domainId && domainName) {
+      setDomainFilter(domainId)
+      setSelectedDomainName(decodeURIComponent(domainName))
+    }
+  }, [searchParams])
 
   // 筛选DNS记录
   const filteredRecords = dnsRecords.filter(record => {
@@ -204,8 +218,12 @@ export default function DnsRecords() {
       {/* 页面标题 */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">DNS管理</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">管理域名DNS解析记录 (模拟数据)</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            {selectedDomainName ? `${selectedDomainName} 的DNS记录` : 'DNS管理'}
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
+            {selectedDomainName ? `管理 ${selectedDomainName} 的DNS解析记录` : '管理域名DNS解析记录'} (模拟数据)
+          </p>
         </div>
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
