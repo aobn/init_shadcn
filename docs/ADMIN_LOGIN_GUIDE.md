@@ -126,10 +126,9 @@ src/
 ├── store/
 │   └── admin-store.ts        # 管理员状态管理
 ├── pages/
-│   ├── AdminLogin.tsx        # 管理员登录页面
-│   └── AdminDashboard.tsx    # 管理员仪表板
+│   └── AdminLogin.tsx        # 管理员登录页面
 └── routes/
-    └── routes.tsx            # 路由配置（已添加管理员路由）
+    └── routes.tsx            # 路由配置
 ```
 
 ## API接口规范

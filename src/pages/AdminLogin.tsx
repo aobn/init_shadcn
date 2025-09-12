@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -9,9 +8,8 @@ import { useAdminLogin } from '@/hooks/api/use-admin-api'
 import { useAdminStore } from '@/store/admin-store'
 
 const AdminLogin: React.FC = () => {
-  const navigate = useNavigate()
   const { login, loading, error } = useAdminLogin()
-  const { isAuthenticated, initializeFromStorage } = useAdminStore()
+  const { initializeFromStorage } = useAdminStore()
   
   const [formData, setFormData] = useState({
     username: '',
@@ -21,10 +19,8 @@ const AdminLogin: React.FC = () => {
   // 初始化时检查是否已登录
   useEffect(() => {
     initializeFromStorage()
-    if (isAuthenticated) {
-      navigate('/admin/dashboard')
-    }
-  }, [isAuthenticated, navigate, initializeFromStorage])
+    // 如果已登录，显示登录状态（不跳转，因为dashboard页面已删除）
+  }, [initializeFromStorage])
 
   // 处理表单输入
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -49,8 +45,8 @@ const AdminLogin: React.FC = () => {
 
     try {
       await login(formData)
-      // 登录成功后跳转到管理员仪表板
-      navigate('/admin/dashboard')
+      // 登录成功提示（dashboard页面已删除）
+      alert('登录成功！')
     } catch (error) {
       // 错误已经在钩子中处理
       console.error('登录失败:', error)

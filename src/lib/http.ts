@@ -43,8 +43,8 @@ http.interceptors.response.use(
     
     // 检查业务状态码
     if (data.code === 200 || data.code === 201) {
-      // 返回业务数据，这样API调用者可以直接获取data字段
-      return data as ApiResponse<unknown>
+      // 返回完整的响应对象，保持类型一致性
+      return response
     }
     
     // 处理业务错误
