@@ -22,3 +22,6 @@ export * from './api'
 
 // 导出管理员相关类型
 export * from './admin'
+
+// 导出域名管理相关类型
+export * from './domain'

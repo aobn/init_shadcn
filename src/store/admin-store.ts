@@ -7,6 +7,7 @@ interface AdminActions {
   setToken: (token: string) => void
   setAuthenticated: (isAuthenticated: boolean) => void
   clearAdmin: () => void
+  logout: () => void
   initializeFromStorage: () => void
 }
 
@@ -35,6 +36,19 @@ export const useAdminStore = create<AdminStore>()(
         token: null,
         isAuthenticated: false,
       }),
+
+      // 退出登录
+      logout: () => {
+        // 清除localStorage中的数据
+        localStorage.removeItem('admin_token')
+        localStorage.removeItem('admin_info')
+        // 清除store状态
+        set({
+          admin: null,
+          token: null,
+          isAuthenticated: false,
+        })
+      },
 
       // 从localStorage初始化状态
       initializeFromStorage: () => {
