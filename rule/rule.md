@@ -2,7 +2,7 @@
 
 ## 项目概述
 
-这是一个基于TypeScript + React Router v7 + shadcn/ui + Tailwind CSS+Zustand的React前端项目
+这是一个基于TypeScript + React Router v7 + shadcn/ui + Tailwind CSS+Zustand的React前端项目,使用pnpm作为包管理器进行包管理。
 
 ## 开发规范
 
@@ -35,6 +35,6 @@
 
 
 ## 项目结构
-请查看 [项目介绍.md](./项目介绍.md) 文档，项目结构严格遵循该文档规定的规范。
-
+1. 请查看 [项目介绍.md](./项目介绍.md) 文档，项目结构严格遵循该文档规定的规范。
+2. 每次新增或删减文件时，请更新[项目介绍.md](./项目介绍.md) 文档的项目结构。不修改其他内容
 

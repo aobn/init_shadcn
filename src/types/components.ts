@@ -21,5 +21,5 @@ export interface ButtonProps {
   asChild?: boolean;
   className?: string;
   children: React.ReactNode;
-  [key: string]: any;
+  [key: string]: unknown;
 }

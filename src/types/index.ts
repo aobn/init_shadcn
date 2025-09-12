@@ -14,5 +14,11 @@ export interface Route {
 export interface ComponentProps {
   className?: string;
   children?: React.ReactNode;
-  [key: string]: any;
+  [key: string]: unknown;
 }
+
+// 导出API相关类型
+export * from './api'
+
+// 导出管理员相关类型
+export * from './admin'
