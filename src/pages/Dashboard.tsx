@@ -1,46 +1,18 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { 
   Users, 
   Globe, 
   Server, 
   TrendingUp,
-  AlertTriangle,
-  Clock
+  Calendar,
+  AlertTriangle
 } from 'lucide-react'
-import { useDashboard } from '@/hooks/api/use-domain-api'
+import { mockDashboardStats, mockUsers, mockDomains } from '@/data/mock-data'
 
 export default function Dashboard() {
-  const { stats, loading, error, getStats } = useDashboard()
-
-  useEffect(() => {
-    getStats()
-  }, [getStats])
-
-  if (loading) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">加载中...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <div className="text-center">
-          <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <p className="text-red-600 mb-4">{error}</p>
-          <Button onClick={getStats}>重试</Button>
-        </div>
-      </div>
-    )
-  }
+  const stats = mockDashboardStats
 
   return (
     <div className="p-6 space-y-6">
@@ -58,10 +30,9 @@ export default function Dashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalUsers || 0}</div>
+            <div className="text-2xl font-bold">{stats.totalUsers}</div>
             <p className="text-xs text-muted-foreground">
-              <TrendingUp className="inline h-3 w-3 mr-1" />
-              较上月增长 12%
+              活跃用户: {stats.activeUsers}
             </p>
           </CardContent>
         </Card>
@@ -72,9 +43,9 @@ export default function Dashboard() {
             <Globe className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalDomains || 0}</div>
+            <div className="text-2xl font-bold">{stats.totalDomains}</div>
             <p className="text-xs text-muted-foreground">
-              活跃域名 {stats?.activeDomains || 0} 个
+              活跃: {stats.activeDomains} | 过期: {stats.expiredDomains}
             </p>
           </CardContent>
         </Card>
@@ -85,9 +56,10 @@ export default function Dashboard() {
             <Server className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalDnsRecords || 0}</div>
+            <div className="text-2xl font-bold">{stats.totalDnsRecords}</div>
             <p className="text-xs text-muted-foreground">
-              分布在 {stats?.totalDomains || 0} 个域名
+              <TrendingUp className="inline h-3 w-3 mr-1" />
+              系统运行正常
             </p>
           </CardContent>
         </Card>
@@ -95,48 +67,49 @@ export default function Dashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">即将过期</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <AlertTriangle className="h-4 w-4 text-orange-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600">
-              {stats?.expiredDomains || 0}
-            </div>
+            <div className="text-2xl font-bold text-orange-600">{stats.expiringDomains.length}</div>
             <p className="text-xs text-muted-foreground">
-              30天内到期域名
+              30天内到期的域名
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* 最近活动 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 最近用户 */}
         <Card>
           <CardHeader>
-            <CardTitle>最近注册用户</CardTitle>
+            <CardTitle className="flex items-center">
+              <Users className="mr-2 h-5 w-5" />
+              最近注册用户
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {stats?.recentUsers?.length ? (
-                stats.recentUsers.map((user) => (
-                  <div key={user.id} className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white text-sm">
-                        {user.username.charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">{user.username}</p>
-                        <p className="text-xs text-gray-500">{user.email}</p>
-                      </div>
+              {stats.recentUsers.map((user) => (
+                <div key={user.id} className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white text-sm">
+                      {user.username.charAt(0).toUpperCase()}
                     </div>
-                    <Badge variant={user.status === 'active' ? 'default' : 'secondary'}>
-                      {user.status === 'active' ? '活跃' : '非活跃'}
-                    </Badge>
+                    <div>
+                      <p className="text-sm font-medium">{user.username}</p>
+                      <p className="text-xs text-gray-500">{user.email}</p>
+                    </div>
                   </div>
-                ))
-              ) : (
-                <p className="text-gray-500 text-center py-4">暂无数据</p>
-              )}
+                  <div className="text-right">
+                    <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
+                      {user.role === 'admin' ? '管理员' : '用户'}
+                    </Badge>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {new Date(user.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -144,37 +117,87 @@ export default function Dashboard() {
         {/* 最近域名 */}
         <Card>
           <CardHeader>
-            <CardTitle>最近添加域名</CardTitle>
+            <CardTitle className="flex items-center">
+              <Globe className="mr-2 h-5 w-5" />
+              最近注册域名
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {stats?.recentDomains?.length ? (
-                stats.recentDomains.map((domain) => (
+              {stats.recentDomains.map((domain) => {
+                const user = mockUsers.find(u => u.id === domain.userId)
+                return (
                   <div key={domain.id} className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium">{domain.name}</p>
                       <p className="text-xs text-gray-500">
-                        到期时间: {new Date(domain.expiresAt).toLocaleDateString()}
+                        所有者: {user?.username || `用户${domain.userId}`}
                       </p>
                     </div>
-                    <Badge 
-                      variant={
-                        domain.status === 'active' ? 'default' : 
-                        domain.status === 'expired' ? 'destructive' : 'secondary'
-                      }
-                    >
-                      {domain.status === 'active' ? '活跃' : 
-                       domain.status === 'expired' ? '已过期' : '非活跃'}
-                    </Badge>
+                    <div className="text-right">
+                      <Badge 
+                        variant={
+                          domain.status === 'active' ? 'default' : 
+                          domain.status === 'expired' ? 'destructive' : 'secondary'
+                        }
+                      >
+                        {domain.status === 'active' ? '活跃' : 
+                         domain.status === 'expired' ? '已过期' : '非活跃'}
+                      </Badge>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {new Date(domain.registeredAt).toLocaleDateString()}
+                      </p>
+                    </div>
                   </div>
-                ))
-              ) : (
-                <p className="text-gray-500 text-center py-4">暂无数据</p>
-              )}
+                )
+              })}
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* 即将过期的域名 */}
+      {stats.expiringDomains.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center text-orange-600">
+              <AlertTriangle className="mr-2 h-5 w-5" />
+              即将过期的域名
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {stats.expiringDomains.map((domain) => {
+                const user = mockUsers.find(u => u.id === domain.userId)
+                const daysUntilExpiry = Math.ceil(
+                  (new Date(domain.expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+                )
+                return (
+                  <div key={domain.id} className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <Calendar className="h-4 w-4 text-orange-500" />
+                      <div>
+                        <p className="text-sm font-medium">{domain.name}</p>
+                        <p className="text-xs text-gray-500">
+                          所有者: {user?.username || `用户${domain.userId}`}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <Badge variant="destructive">
+                        {daysUntilExpiry}天后过期
+                      </Badge>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {new Date(domain.expiresAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

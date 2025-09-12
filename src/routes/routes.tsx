@@ -1,6 +1,5 @@
 import { createBrowserRouter } from 'react-router-dom';
 import AdminLogin from '@/pages/AdminLogin';
-import AdminDashboard from '@/pages/AdminDashboard';
 import MainLayout from '@/components/layout/main-layout';
 import Dashboard from '@/pages/Dashboard';
 import Users from '@/pages/Users';
@@ -34,11 +33,7 @@ const router = createBrowserRouter([
       }
     ]
   },
-  // 保留旧的dashboard路由作为重定向
-  {
-    path: '/admin/dashboard',
-    element: <AdminDashboard />
-  }
+
 ]);
 
 export default router;

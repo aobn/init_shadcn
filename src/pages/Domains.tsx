@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -34,30 +34,16 @@ import {
   Edit, 
   Trash2, 
   RefreshCw,
-  AlertTriangle,
-  Calendar
+  AlertTriangle
 } from 'lucide-react'
-import { useDomains, useUsers } from '@/hooks/api/use-domain-api'
+import { mockDomains, mockUsers, mockDelay } from '@/data/mock-data'
 import type { Domain, DomainFormData } from '@/types/domain'
 
 export default function Domains() {
-  const { 
-    domains, 
-    loading, 
-    error, 
-    actionLoading,
-    getDomains, 
-    createDomain, 
-    updateDomain, 
-    deleteDomain,
-    batchDeleteDomains,
-    renewDomain
-  } = useDomains()
-
-  const { users, getUsers } = useUsers()
-
+  const [domains, setDomains] = useState(mockDomains)
+  const [loading, setLoading] = useState(false)
   const [searchKeyword, setSearchKeyword] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string>('')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
   const [selectedDomains, setSelectedDomains] = useState<number[]>([])
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingDomain, setEditingDomain] = useState<Domain | null>(null)
@@ -68,43 +54,61 @@ export default function Domains() {
     expiresAt: ''
   })
 
-  // 加载数据
-  useEffect(() => {
-    getDomains({
-      page: 1,
-      pageSize: 20,
-      keyword: searchKeyword,
-      status: statusFilter
-    })
-    getUsers({ page: 1, pageSize: 100 }) // 加载用户列表用于选择
-  }, [getDomains, getUsers, searchKeyword, statusFilter])
+  // 筛选域名
+  const filteredDomains = domains.filter(domain => {
+    const matchesKeyword = !searchKeyword || 
+      domain.name.toLowerCase().includes(searchKeyword.toLowerCase())
+    const matchesStatus = statusFilter === 'all' || domain.status === statusFilter
+    return matchesKeyword && matchesStatus
+  })
 
   // 处理搜索
-  const handleSearch = () => {
-    getDomains({
-      page: 1,
-      pageSize: 20,
-      keyword: searchKeyword,
-      status: statusFilter
-    })
+  const handleSearch = async () => {
+    setLoading(true)
+    await mockDelay(300)
+    setLoading(false)
   }
 
   // 处理创建/编辑域名
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    try {
-      if (editingDomain) {
-        await updateDomain(editingDomain.id, formData)
-      } else {
-        await createDomain(formData)
+    setLoading(true)
+    await mockDelay(500)
+
+    if (editingDomain) {
+      // 编辑域名
+      setDomains(domains.map(domain => 
+        domain.id === editingDomain.id 
+          ? { 
+              ...domain, 
+              name: formData.name,
+              userId: formData.userId,
+              autoRenew: formData.autoRenew,
+              expiresAt: formData.expiresAt + 'T00:00:00Z',
+              updatedAt: new Date().toISOString()
+            }
+          : domain
+      ))
+    } else {
+      // 创建新域名
+      const newDomain: Domain = {
+        id: Math.max(...domains.map(d => d.id)) + 1,
+        name: formData.name,
+        userId: formData.userId,
+        status: 'active',
+        autoRenew: formData.autoRenew,
+        registeredAt: new Date().toISOString(),
+        expiresAt: formData.expiresAt + 'T00:00:00Z',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       }
-      setIsDialogOpen(false)
-      setEditingDomain(null)
-      resetForm()
-      getDomains({ page: 1, pageSize: 20, keyword: searchKeyword, status: statusFilter })
-    } catch (error) {
-      console.error('操作失败:', error)
+      setDomains([...domains, newDomain])
     }
+
+    setIsDialogOpen(false)
+    setEditingDomain(null)
+    resetForm()
+    setLoading(false)
   }
 
   // 重置表单
@@ -132,12 +136,10 @@ export default function Domains() {
   // 删除域名
   const handleDelete = async (id: number) => {
     if (confirm('确定要删除这个域名吗？')) {
-      try {
-        await deleteDomain(id)
-        getDomains({ page: 1, pageSize: 20, keyword: searchKeyword, status: statusFilter })
-      } catch (error) {
-        console.error('删除失败:', error)
-      }
+      setLoading(true)
+      await mockDelay(300)
+      setDomains(domains.filter(domain => domain.id !== id))
+      setLoading(false)
     }
   }
 
@@ -145,12 +147,23 @@ export default function Domains() {
   const handleRenew = async (id: number) => {
     const years = prompt('请输入续费年数:', '1')
     if (years && !isNaN(Number(years))) {
-      try {
-        await renewDomain(id, Number(years))
-        getDomains({ page: 1, pageSize: 20, keyword: searchKeyword, status: statusFilter })
-      } catch (error) {
-        console.error('续费失败:', error)
-      }
+      setLoading(true)
+      await mockDelay(500)
+      setDomains(domains.map(domain => {
+        if (domain.id === id) {
+          const currentExpiry = new Date(domain.expiresAt)
+          const newExpiry = new Date(currentExpiry.getTime() + Number(years) * 365 * 24 * 60 * 60 * 1000)
+          return {
+            ...domain,
+            expiresAt: newExpiry.toISOString(),
+            status: 'active' as const,
+            updatedAt: new Date().toISOString()
+          }
+        }
+        return domain
+      }))
+      setLoading(false)
+      alert(`域名已成功续费 ${years} 年`)
     }
   }
 
@@ -158,20 +171,18 @@ export default function Domains() {
   const handleBatchDelete = async () => {
     if (selectedDomains.length === 0) return
     if (confirm(`确定要删除选中的 ${selectedDomains.length} 个域名吗？`)) {
-      try {
-        await batchDeleteDomains(selectedDomains)
-        setSelectedDomains([])
-        getDomains({ page: 1, pageSize: 20, keyword: searchKeyword, status: statusFilter })
-      } catch (error) {
-        console.error('批量删除失败:', error)
-      }
+      setLoading(true)
+      await mockDelay(500)
+      setDomains(domains.filter(domain => !selectedDomains.includes(domain.id)))
+      setSelectedDomains([])
+      setLoading(false)
     }
   }
 
   // 处理全选
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedDomains(domains?.list?.map(domain => domain.id) || [])
+      setSelectedDomains(filteredDomains.map(domain => domain.id))
     } else {
       setSelectedDomains([])
     }
@@ -206,24 +217,13 @@ export default function Domains() {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">加载中...</p>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="p-6 space-y-6">
       {/* 页面标题 */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">域名管理</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">管理用户域名注册和续费</p>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">管理用户域名注册和续费 (模拟数据)</p>
         </div>
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -258,7 +258,7 @@ export default function Domains() {
                     <SelectValue placeholder="选择用户" />
                   </SelectTrigger>
                   <SelectContent>
-                    {users?.list?.map((user) => (
+                    {mockUsers.map((user) => (
                       <SelectItem key={user.id} value={user.id.toString()}>
                         {user.username} ({user.email})
                       </SelectItem>
@@ -288,8 +288,8 @@ export default function Domains() {
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                   取消
                 </Button>
-                <Button type="submit" disabled={actionLoading}>
-                  {actionLoading ? '保存中...' : '保存'}
+                <Button type="submit" disabled={loading}>
+                  {loading ? '保存中...' : '保存'}
                 </Button>
               </div>
             </form>
@@ -318,13 +318,15 @@ export default function Domains() {
                 <SelectValue placeholder="状态筛选" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">全部状态</SelectItem>
+                <SelectItem value="all">全部状态</SelectItem>
                 <SelectItem value="active">活跃</SelectItem>
                 <SelectItem value="inactive">非活跃</SelectItem>
                 <SelectItem value="expired">已过期</SelectItem>
               </SelectContent>
             </Select>
-            <Button onClick={handleSearch}>搜索</Button>
+            <Button onClick={handleSearch} disabled={loading}>
+              {loading ? '搜索中...' : '搜索'}
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -337,7 +339,7 @@ export default function Domains() {
               <span className="text-sm text-gray-600">
                 已选择 {selectedDomains.length} 个域名
               </span>
-              <Button variant="destructive" size="sm" onClick={handleBatchDelete}>
+              <Button variant="destructive" size="sm" onClick={handleBatchDelete} disabled={loading}>
                 <Trash2 className="mr-2 h-4 w-4" />
                 批量删除
               </Button>
@@ -349,36 +351,31 @@ export default function Domains() {
       {/* 域名列表 */}
       <Card>
         <CardHeader>
-          <CardTitle>域名列表</CardTitle>
+          <CardTitle>域名列表 (共 {filteredDomains.length} 个)</CardTitle>
         </CardHeader>
         <CardContent>
-          {error ? (
-            <div className="text-center py-8">
-              <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-              <p className="text-red-600 mb-4">{error}</p>
-              <Button onClick={() => getDomains({ page: 1, pageSize: 20 })}>重试</Button>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">
-                    <Checkbox
-                      checked={domains?.list?.length > 0 && selectedDomains.length === domains.list.length}
-                      onCheckedChange={handleSelectAll}
-                    />
-                  </TableHead>
-                  <TableHead>域名</TableHead>
-                  <TableHead>所属用户</TableHead>
-                  <TableHead>状态</TableHead>
-                  <TableHead>到期时间</TableHead>
-                  <TableHead>自动续费</TableHead>
-                  <TableHead>注册时间</TableHead>
-                  <TableHead className="w-32">操作</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {domains?.list?.map((domain) => (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-12">
+                  <Checkbox
+                    checked={filteredDomains.length > 0 && selectedDomains.length === filteredDomains.length}
+                    onCheckedChange={handleSelectAll}
+                  />
+                </TableHead>
+                <TableHead>域名</TableHead>
+                <TableHead>所属用户</TableHead>
+                <TableHead>状态</TableHead>
+                <TableHead>到期时间</TableHead>
+                <TableHead>自动续费</TableHead>
+                <TableHead>注册时间</TableHead>
+                <TableHead className="w-32">操作</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredDomains.map((domain) => {
+                const user = mockUsers.find(u => u.id === domain.userId)
+                return (
                   <TableRow key={domain.id}>
                     <TableCell>
                       <Checkbox
@@ -388,7 +385,7 @@ export default function Domains() {
                     </TableCell>
                     <TableCell className="font-medium">{domain.name}</TableCell>
                     <TableCell>
-                      {users?.list?.find(u => u.id === domain.userId)?.username || `用户${domain.userId}`}
+                      {user?.username || `用户${domain.userId}`}
                     </TableCell>
                     <TableCell>
                       <Badge variant={getStatusVariant(domain.status)}>
@@ -417,6 +414,7 @@ export default function Domains() {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleEdit(domain)}
+                          disabled={loading}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -425,6 +423,7 @@ export default function Domains() {
                           size="sm"
                           onClick={() => handleRenew(domain.id)}
                           className="text-green-600 hover:text-green-700"
+                          disabled={loading}
                         >
                           <RefreshCw className="h-4 w-4" />
                         </Button>
@@ -433,22 +432,24 @@ export default function Domains() {
                           size="sm"
                           onClick={() => handleDelete(domain.id)}
                           className="text-red-600 hover:text-red-700"
+                          disabled={loading}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </TableCell>
                   </TableRow>
-                )) || (
-                  <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8 text-gray-500">
-                      暂无域名数据
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          )}
+                )
+              })}
+              {filteredDomains.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                    {searchKeyword || statusFilter ? '没有找到匹配的域名' : '暂无域名数据'}
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
     </div>

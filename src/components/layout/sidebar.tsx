@@ -21,22 +21,22 @@ interface SidebarProps {
 const navigation = [
   {
     name: '仪表板',
-    href: '/dashboard',
+    href: '/admin/dashboard',
     icon: LayoutDashboard
   },
   {
     name: '用户管理',
-    href: '/users',
+    href: '/admin/users',
     icon: Users
   },
   {
     name: '域名管理',
-    href: '/domains',
+    href: '/admin/domains',
     icon: Globe
   },
   {
     name: 'DNS管理',
-    href: '/dns',
+    href: '/admin/dns',
     icon: Server
   }
 ]

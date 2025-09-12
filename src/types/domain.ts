@@ -28,7 +28,7 @@ export interface Domain {
 export interface DnsRecord {
   id: number
   domainId: number
-  type: 'A' | 'AAAA' | 'CNAME' | 'MX' | 'TXT' | 'NS'
+  type: 'A' | 'AAAA' | 'CNAME' | 'MX' | 'TXT' | 'NS' | 'SRV' | 'PTR'
   name: string
   value: string
   ttl: number
@@ -57,7 +57,7 @@ export interface DomainFormData {
 // DNS记录表单数据
 export interface DnsRecordFormData {
   domainId: number
-  type: 'A' | 'AAAA' | 'CNAME' | 'MX' | 'TXT' | 'NS'
+  type: 'A' | 'AAAA' | 'CNAME' | 'MX' | 'TXT' | 'NS' | 'SRV' | 'PTR'
   name: string
   value: string
   ttl: number

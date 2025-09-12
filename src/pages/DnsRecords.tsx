@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -33,29 +33,16 @@ import {
   Search, 
   Edit, 
   Trash2, 
-  AlertTriangle,
   Network
 } from 'lucide-react'
-import { useDnsRecords, useDomains } from '@/hooks/api/use-domain-api'
+import { mockDnsRecords, mockDomains, mockDelay } from '@/data/mock-data'
 import type { DnsRecord, DnsRecordFormData } from '@/types/domain'
 
 export default function DnsRecords() {
-  const { 
-    dnsRecords, 
-    loading, 
-    error, 
-    actionLoading,
-    getDnsRecords, 
-    createDnsRecord, 
-    updateDnsRecord, 
-    deleteDnsRecord,
-    batchDeleteDnsRecords
-  } = useDnsRecords()
-
-  const { domains, getDomains } = useDomains()
-
+  const [dnsRecords, setDnsRecords] = useState(mockDnsRecords)
+  const [loading, setLoading] = useState(false)
   const [searchKeyword, setSearchKeyword] = useState('')
-  const [typeFilter, setTypeFilter] = useState<string>('')
+  const [typeFilter, setTypeFilter] = useState<string>('all')
   const [domainFilter, setDomainFilter] = useState<string>('')
   const [selectedRecords, setSelectedRecords] = useState<number[]>([])
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -69,51 +56,65 @@ export default function DnsRecords() {
     priority: 0
   })
 
-  // 加载数据
-  useEffect(() => {
-    getDnsRecords({
-      page: 1,
-      pageSize: 20,
-      keyword: searchKeyword,
-      type: typeFilter,
-      domainId: domainFilter ? Number(domainFilter) : undefined
-    })
-    getDomains({ page: 1, pageSize: 100 }) // 加载域名列表用于选择
-  }, [getDnsRecords, getDomains, searchKeyword, typeFilter, domainFilter])
+  // 筛选DNS记录
+  const filteredRecords = dnsRecords.filter(record => {
+    const matchesKeyword = !searchKeyword || 
+      record.name.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+      record.value.toLowerCase().includes(searchKeyword.toLowerCase())
+    const matchesType = typeFilter === 'all' || record.type === typeFilter
+    const matchesDomain = !domainFilter || record.domainId.toString() === domainFilter
+    return matchesKeyword && matchesType && matchesDomain
+  })
 
   // 处理搜索
-  const handleSearch = () => {
-    getDnsRecords({
-      page: 1,
-      pageSize: 20,
-      keyword: searchKeyword,
-      type: typeFilter,
-      domainId: domainFilter ? Number(domainFilter) : undefined
-    })
+  const handleSearch = async () => {
+    setLoading(true)
+    await mockDelay(300)
+    setLoading(false)
   }
 
   // 处理创建/编辑DNS记录
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    try {
-      if (editingRecord) {
-        await updateDnsRecord(editingRecord.id, formData)
-      } else {
-        await createDnsRecord(formData)
+    setLoading(true)
+    await mockDelay(500)
+
+    if (editingRecord) {
+      // 编辑DNS记录
+      setDnsRecords(dnsRecords.map(record => 
+        record.id === editingRecord.id 
+          ? { 
+              ...record, 
+              domainId: formData.domainId,
+              type: formData.type,
+              name: formData.name,
+              value: formData.value,
+              ttl: formData.ttl,
+              priority: formData.priority,
+              updatedAt: new Date().toISOString()
+            }
+          : record
+      ))
+    } else {
+      // 创建新DNS记录
+      const newRecord: DnsRecord = {
+        id: Math.max(...dnsRecords.map(r => r.id)) + 1,
+        domainId: formData.domainId,
+        type: formData.type,
+        name: formData.name,
+        value: formData.value,
+        ttl: formData.ttl,
+        priority: formData.priority,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       }
-      setIsDialogOpen(false)
-      setEditingRecord(null)
-      resetForm()
-      getDnsRecords({ 
-        page: 1, 
-        pageSize: 20, 
-        keyword: searchKeyword, 
-        type: typeFilter,
-        domainId: domainFilter ? Number(domainFilter) : undefined
-      })
-    } catch (error) {
-      console.error('操作失败:', error)
+      setDnsRecords([...dnsRecords, newRecord])
     }
+
+    setIsDialogOpen(false)
+    setEditingRecord(null)
+    resetForm()
+    setLoading(false)
   }
 
   // 重置表单
@@ -145,18 +146,10 @@ export default function DnsRecords() {
   // 删除DNS记录
   const handleDelete = async (id: number) => {
     if (confirm('确定要删除这个DNS记录吗？')) {
-      try {
-        await deleteDnsRecord(id)
-        getDnsRecords({ 
-          page: 1, 
-          pageSize: 20, 
-          keyword: searchKeyword, 
-          type: typeFilter,
-          domainId: domainFilter ? Number(domainFilter) : undefined
-        })
-      } catch (error) {
-        console.error('删除失败:', error)
-      }
+      setLoading(true)
+      await mockDelay(300)
+      setDnsRecords(dnsRecords.filter(record => record.id !== id))
+      setLoading(false)
     }
   }
 
@@ -164,26 +157,18 @@ export default function DnsRecords() {
   const handleBatchDelete = async () => {
     if (selectedRecords.length === 0) return
     if (confirm(`确定要删除选中的 ${selectedRecords.length} 个DNS记录吗？`)) {
-      try {
-        await batchDeleteDnsRecords(selectedRecords)
-        setSelectedRecords([])
-        getDnsRecords({ 
-          page: 1, 
-          pageSize: 20, 
-          keyword: searchKeyword, 
-          type: typeFilter,
-          domainId: domainFilter ? Number(domainFilter) : undefined
-        })
-      } catch (error) {
-        console.error('批量删除失败:', error)
-      }
+      setLoading(true)
+      await mockDelay(500)
+      setDnsRecords(dnsRecords.filter(record => !selectedRecords.includes(record.id)))
+      setSelectedRecords([])
+      setLoading(false)
     }
   }
 
   // 处理全选
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedRecords(dnsRecords?.list?.map(record => record.id) || [])
+      setSelectedRecords(filteredRecords.map(record => record.id))
     } else {
       setSelectedRecords([])
     }
@@ -214,24 +199,13 @@ export default function DnsRecords() {
   // DNS记录类型选项
   const recordTypes = ['A', 'AAAA', 'CNAME', 'MX', 'TXT', 'NS', 'SRV', 'PTR']
 
-  if (loading) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">加载中...</p>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="p-6 space-y-6">
       {/* 页面标题 */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">DNS管理</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">管理域名DNS解析记录</p>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">管理域名DNS解析记录 (模拟数据)</p>
         </div>
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -256,7 +230,7 @@ export default function DnsRecords() {
                     <SelectValue placeholder="选择域名" />
                   </SelectTrigger>
                   <SelectContent>
-                    {domains?.list?.map((domain) => (
+                    {mockDomains.map((domain) => (
                       <SelectItem key={domain.id} value={domain.id.toString()}>
                         {domain.name}
                       </SelectItem>
@@ -334,8 +308,8 @@ export default function DnsRecords() {
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                   取消
                 </Button>
-                <Button type="submit" disabled={actionLoading}>
-                  {actionLoading ? '保存中...' : '保存'}
+                <Button type="submit" disabled={loading}>
+                  {loading ? '保存中...' : '保存'}
                 </Button>
               </div>
             </form>
@@ -364,8 +338,8 @@ export default function DnsRecords() {
                 <SelectValue placeholder="域名筛选" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">全部域名</SelectItem>
-                {domains?.list?.map((domain) => (
+                <SelectItem value="all">全部域名</SelectItem>
+                {mockDomains.map((domain) => (
                   <SelectItem key={domain.id} value={domain.id.toString()}>
                     {domain.name}
                   </SelectItem>
@@ -377,7 +351,7 @@ export default function DnsRecords() {
                 <SelectValue placeholder="类型筛选" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">全部类型</SelectItem>
+                <SelectItem value="all">全部类型</SelectItem>
                 {recordTypes.map((type) => (
                   <SelectItem key={type} value={type}>
                     {type}
@@ -385,7 +359,9 @@ export default function DnsRecords() {
                 ))}
               </SelectContent>
             </Select>
-            <Button onClick={handleSearch}>搜索</Button>
+            <Button onClick={handleSearch} disabled={loading}>
+              {loading ? '搜索中...' : '搜索'}
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -398,7 +374,7 @@ export default function DnsRecords() {
               <span className="text-sm text-gray-600">
                 已选择 {selectedRecords.length} 个DNS记录
               </span>
-              <Button variant="destructive" size="sm" onClick={handleBatchDelete}>
+              <Button variant="destructive" size="sm" onClick={handleBatchDelete} disabled={loading}>
                 <Trash2 className="mr-2 h-4 w-4" />
                 批量删除
               </Button>
@@ -412,38 +388,33 @@ export default function DnsRecords() {
         <CardHeader>
           <CardTitle className="flex items-center">
             <Network className="mr-2 h-5 w-5" />
-            DNS记录列表
+            DNS记录列表 (共 {filteredRecords.length} 个)
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {error ? (
-            <div className="text-center py-8">
-              <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-              <p className="text-red-600 mb-4">{error}</p>
-              <Button onClick={() => getDnsRecords({ page: 1, pageSize: 20 })}>重试</Button>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">
-                    <Checkbox
-                      checked={dnsRecords?.list?.length > 0 && selectedRecords.length === dnsRecords.list.length}
-                      onCheckedChange={handleSelectAll}
-                    />
-                  </TableHead>
-                  <TableHead>域名</TableHead>
-                  <TableHead>类型</TableHead>
-                  <TableHead>名称</TableHead>
-                  <TableHead>值</TableHead>
-                  <TableHead>TTL</TableHead>
-                  <TableHead>优先级</TableHead>
-                  <TableHead>更新时间</TableHead>
-                  <TableHead className="w-24">操作</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {dnsRecords?.list?.map((record) => (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-12">
+                  <Checkbox
+                    checked={filteredRecords.length > 0 && selectedRecords.length === filteredRecords.length}
+                    onCheckedChange={handleSelectAll}
+                  />
+                </TableHead>
+                <TableHead>域名</TableHead>
+                <TableHead>类型</TableHead>
+                <TableHead>名称</TableHead>
+                <TableHead>值</TableHead>
+                <TableHead>TTL</TableHead>
+                <TableHead>优先级</TableHead>
+                <TableHead>更新时间</TableHead>
+                <TableHead className="w-24">操作</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredRecords.map((record) => {
+                const domain = mockDomains.find(d => d.id === record.domainId)
+                return (
                   <TableRow key={record.id}>
                     <TableCell>
                       <Checkbox
@@ -452,7 +423,7 @@ export default function DnsRecords() {
                       />
                     </TableCell>
                     <TableCell className="font-medium">
-                      {domains?.list?.find(d => d.id === record.domainId)?.name || `域名${record.domainId}`}
+                      {domain?.name || `域名${record.domainId}`}
                     </TableCell>
                     <TableCell>
                       <Badge variant={getTypeVariant(record.type)}>
@@ -474,6 +445,7 @@ export default function DnsRecords() {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleEdit(record)}
+                          disabled={loading}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -482,22 +454,24 @@ export default function DnsRecords() {
                           size="sm"
                           onClick={() => handleDelete(record.id)}
                           className="text-red-600 hover:text-red-700"
+                          disabled={loading}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </TableCell>
                   </TableRow>
-                )) || (
-                  <TableRow>
-                    <TableCell colSpan={9} className="text-center py-8 text-gray-500">
-                      暂无DNS记录数据
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          )}
+                )
+              })}
+              {filteredRecords.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={9} className="text-center py-8 text-gray-500">
+                    {searchKeyword || typeFilter || domainFilter ? '没有找到匹配的DNS记录' : '暂无DNS记录数据'}
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
     </div>

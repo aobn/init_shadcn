@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -32,27 +32,16 @@ import {
   Search, 
   Edit, 
   Trash2, 
-  MoreHorizontal,
   AlertTriangle
 } from 'lucide-react'
-import { useUsers } from '@/hooks/api/use-domain-api'
+import { mockUsers, mockDelay } from '@/data/mock-data'
 import type { User, UserFormData } from '@/types/domain'
 
 export default function Users() {
-  const { 
-    users, 
-    loading, 
-    error, 
-    actionLoading,
-    getUsers, 
-    createUser, 
-    updateUser, 
-    deleteUser,
-    batchDeleteUsers
-  } = useUsers()
-
+  const [users, setUsers] = useState(mockUsers)
+  const [loading, setLoading] = useState(false)
   const [searchKeyword, setSearchKeyword] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string>('')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
   const [selectedUsers, setSelectedUsers] = useState<number[]>([])
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
@@ -64,42 +53,60 @@ export default function Users() {
     status: 'active'
   })
 
-  // 加载用户列表
-  useEffect(() => {
-    getUsers({
-      page: 1,
-      pageSize: 20,
-      keyword: searchKeyword,
-      status: statusFilter
-    })
-  }, [getUsers, searchKeyword, statusFilter])
+  // 筛选用户
+  const filteredUsers = users.filter(user => {
+    const matchesKeyword = !searchKeyword || 
+      user.username.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchKeyword.toLowerCase())
+    const matchesStatus = statusFilter === 'all' || user.status === statusFilter
+    return matchesKeyword && matchesStatus
+  })
 
   // 处理搜索
-  const handleSearch = () => {
-    getUsers({
-      page: 1,
-      pageSize: 20,
-      keyword: searchKeyword,
-      status: statusFilter
-    })
+  const handleSearch = async () => {
+    setLoading(true)
+    await mockDelay(300)
+    setLoading(false)
   }
 
   // 处理创建/编辑用户
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    try {
-      if (editingUser) {
-        await updateUser(editingUser.id, formData)
-      } else {
-        await createUser(formData)
+    setLoading(true)
+    await mockDelay(500)
+
+    if (editingUser) {
+      // 编辑用户
+      setUsers(users.map(user => 
+        user.id === editingUser.id 
+          ? { 
+              ...user, 
+              username: formData.username,
+              email: formData.email,
+              role: formData.role,
+              status: formData.status,
+              updatedAt: new Date().toISOString()
+            }
+          : user
+      ))
+    } else {
+      // 创建新用户
+      const newUser: User = {
+        id: Math.max(...users.map(u => u.id)) + 1,
+        username: formData.username,
+        email: formData.email,
+        role: formData.role,
+        status: formData.status,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       }
-      setIsDialogOpen(false)
-      setEditingUser(null)
-      resetForm()
-      getUsers({ page: 1, pageSize: 20, keyword: searchKeyword, status: statusFilter })
-    } catch (error) {
-      console.error('操作失败:', error)
+      setUsers([...users, newUser])
     }
+
+    setIsDialogOpen(false)
+    setEditingUser(null)
+    resetForm()
+    setLoading(false)
   }
 
   // 重置表单
@@ -129,12 +136,10 @@ export default function Users() {
   // 删除用户
   const handleDelete = async (id: number) => {
     if (confirm('确定要删除这个用户吗？')) {
-      try {
-        await deleteUser(id)
-        getUsers({ page: 1, pageSize: 20, keyword: searchKeyword, status: statusFilter })
-      } catch (error) {
-        console.error('删除失败:', error)
-      }
+      setLoading(true)
+      await mockDelay(300)
+      setUsers(users.filter(user => user.id !== id))
+      setLoading(false)
     }
   }
 
@@ -142,20 +147,18 @@ export default function Users() {
   const handleBatchDelete = async () => {
     if (selectedUsers.length === 0) return
     if (confirm(`确定要删除选中的 ${selectedUsers.length} 个用户吗？`)) {
-      try {
-        await batchDeleteUsers(selectedUsers)
-        setSelectedUsers([])
-        getUsers({ page: 1, pageSize: 20, keyword: searchKeyword, status: statusFilter })
-      } catch (error) {
-        console.error('批量删除失败:', error)
-      }
+      setLoading(true)
+      await mockDelay(500)
+      setUsers(users.filter(user => !selectedUsers.includes(user.id)))
+      setSelectedUsers([])
+      setLoading(false)
     }
   }
 
   // 处理全选
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedUsers(users?.list?.map(user => user.id) || [])
+      setSelectedUsers(filteredUsers.map(user => user.id))
     } else {
       setSelectedUsers([])
     }
@@ -170,24 +173,13 @@ export default function Users() {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">加载中...</p>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="p-6 space-y-6">
       {/* 页面标题 */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">用户管理</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">管理系统用户账户</p>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">管理系统用户账户 (模拟数据)</p>
         </div>
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -260,8 +252,8 @@ export default function Users() {
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                   取消
                 </Button>
-                <Button type="submit" disabled={actionLoading}>
-                  {actionLoading ? '保存中...' : '保存'}
+                <Button type="submit" disabled={loading}>
+                  {loading ? '保存中...' : '保存'}
                 </Button>
               </div>
             </form>
@@ -290,12 +282,14 @@ export default function Users() {
                 <SelectValue placeholder="状态筛选" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">全部状态</SelectItem>
+                <SelectItem value="all">全部状态</SelectItem>
                 <SelectItem value="active">活跃</SelectItem>
                 <SelectItem value="inactive">非活跃</SelectItem>
               </SelectContent>
             </Select>
-            <Button onClick={handleSearch}>搜索</Button>
+            <Button onClick={handleSearch} disabled={loading}>
+              {loading ? '搜索中...' : '搜索'}
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -308,7 +302,7 @@ export default function Users() {
               <span className="text-sm text-gray-600">
                 已选择 {selectedUsers.length} 个用户
               </span>
-              <Button variant="destructive" size="sm" onClick={handleBatchDelete}>
+              <Button variant="destructive" size="sm" onClick={handleBatchDelete} disabled={loading}>
                 <Trash2 className="mr-2 h-4 w-4" />
                 批量删除
               </Button>
@@ -320,85 +314,80 @@ export default function Users() {
       {/* 用户列表 */}
       <Card>
         <CardHeader>
-          <CardTitle>用户列表</CardTitle>
+          <CardTitle>用户列表 (共 {filteredUsers.length} 个)</CardTitle>
         </CardHeader>
         <CardContent>
-          {error ? (
-            <div className="text-center py-8">
-              <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-              <p className="text-red-600 mb-4">{error}</p>
-              <Button onClick={() => getUsers({ page: 1, pageSize: 20 })}>重试</Button>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-12">
+                  <Checkbox
+                    checked={filteredUsers.length > 0 && selectedUsers.length === filteredUsers.length}
+                    onCheckedChange={handleSelectAll}
+                  />
+                </TableHead>
+                <TableHead>用户名</TableHead>
+                <TableHead>邮箱</TableHead>
+                <TableHead>角色</TableHead>
+                <TableHead>状态</TableHead>
+                <TableHead>创建时间</TableHead>
+                <TableHead className="w-24">操作</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredUsers.map((user) => (
+                <TableRow key={user.id}>
+                  <TableCell>
                     <Checkbox
-                      checked={(users?.list?.length || 0) > 0 && selectedUsers.length === (users?.list?.length || 0)}
-                      onCheckedChange={handleSelectAll}
+                      checked={selectedUsers.includes(user.id)}
+                      onCheckedChange={(checked) => handleSelectUser(user.id, checked as boolean)}
                     />
-                  </TableHead>
-                  <TableHead>用户名</TableHead>
-                  <TableHead>邮箱</TableHead>
-                  <TableHead>角色</TableHead>
-                  <TableHead>状态</TableHead>
-                  <TableHead>创建时间</TableHead>
-                  <TableHead className="w-24">操作</TableHead>
+                  </TableCell>
+                  <TableCell className="font-medium">{user.username}</TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>
+                    <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
+                      {user.role === 'admin' ? '管理员' : '普通用户'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={user.status === 'active' ? 'default' : 'secondary'}>
+                      {user.status === 'active' ? '活跃' : '非活跃'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEdit(user)}
+                        disabled={loading}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDelete(user.id)}
+                        className="text-red-600 hover:text-red-700"
+                        disabled={loading}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {users?.list?.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell>
-                      <Checkbox
-                        checked={selectedUsers.includes(user.id)}
-                        onCheckedChange={(checked) => handleSelectUser(user.id, checked as boolean)}
-                      />
-                    </TableCell>
-                    <TableCell className="font-medium">{user.username}</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>
-                      <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
-                        {user.role === 'admin' ? '管理员' : '普通用户'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={user.status === 'active' ? 'default' : 'secondary'}>
-                        {user.status === 'active' ? '活跃' : '非活跃'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEdit(user)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(user.id)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )) || (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                      暂无用户数据
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          )}
+              ))}
+              {filteredUsers.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                    {searchKeyword || statusFilter ? '没有找到匹配的用户' : '暂无用户数据'}
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
     </div>
