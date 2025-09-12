@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -10,6 +11,7 @@ import { useAdminStore } from '@/store/admin-store'
 import { AdminLoginTest } from '@/components/admin-login-test'
 
 const AdminLogin: React.FC = () => {
+  const navigate = useNavigate()
   const { login, loading, error } = useAdminLogin()
   const { logout } = useAdminLogout()
   const { admin, isAuthenticated, initializeFromStorage } = useAdminStore()
@@ -27,7 +29,10 @@ const AdminLogin: React.FC = () => {
   // 初始化时检查是否已登录
   useEffect(() => {
     initializeFromStorage()
-  }, [initializeFromStorage])
+    if (isAuthenticated) {
+      navigate('/admin/dashboard')
+    }
+  }, [initializeFromStorage, isAuthenticated, navigate])
 
   // 处理表单输入
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -80,9 +85,10 @@ const AdminLogin: React.FC = () => {
 
     try {
       await login(formData)
-      // 登录成功，清空表单
+      // 登录成功，清空表单并跳转到管理后台
       setFormData({ username: '', password: '' })
       setFormErrors({ username: '', password: '' })
+      navigate('/admin/dashboard')
     } catch (error) {
       // 错误已经在钩子中处理
       console.error('登录失败:', error)

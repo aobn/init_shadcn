@@ -1,6 +1,6 @@
 import '@/styles/App.css'
 import { Outlet } from 'react-router-dom'
-import { ModeToggle } from '@/components/layout/mode-toggle'
+import { ModeToggle } from '@/components/mode-toggle'
 
 function App() {
   return (

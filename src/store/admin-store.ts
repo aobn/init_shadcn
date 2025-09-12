@@ -10,18 +10,23 @@ interface AdminActions {
   initializeFromStorage: () => void
 }
 
-type AdminStore = AdminState & AdminActions
+interface ExtendedAdminState extends AdminState {
+  adminInfo: Admin | null
+}
+
+type AdminStore = ExtendedAdminState & AdminActions
 
 export const useAdminStore = create<AdminStore>()(
   persist(
     (set, get) => ({
       // 初始状态
       admin: null,
+      adminInfo: null, // 添加 adminInfo 属性以兼容现有代码
       token: null,
       isAuthenticated: false,
 
       // 设置管理员信息
-      setAdmin: (admin: Admin) => set({ admin }),
+      setAdmin: (admin: Admin) => set({ admin, adminInfo: admin }),
 
       // 设置token
       setToken: (token: string) => set({ token }),
@@ -32,6 +37,7 @@ export const useAdminStore = create<AdminStore>()(
       // 清除管理员信息
       clearAdmin: () => set({
         admin: null,
+        adminInfo: null,
         token: null,
         isAuthenticated: false,
       }),
@@ -46,8 +52,17 @@ export const useAdminStore = create<AdminStore>()(
             const admin = JSON.parse(adminInfo)
             set({
               admin,
+              adminInfo: admin,
               token,
               isAuthenticated: true,
+            })
+          } else {
+            // 如果没有token或adminInfo，确保状态为未认证
+            set({
+              admin: null,
+              adminInfo: null,
+              token: null,
+              isAuthenticated: false,
             })
           }
         } catch (error) {
@@ -61,6 +76,7 @@ export const useAdminStore = create<AdminStore>()(
       // 只持久化基本信息，token从localStorage获取
       partialize: (state) => ({
         admin: state.admin,
+        adminInfo: state.adminInfo,
         isAuthenticated: state.isAuthenticated,
       }),
     }
