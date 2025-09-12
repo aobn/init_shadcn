@@ -15,14 +15,14 @@ const AdminDashboard: React.FC = () => {
   useEffect(() => {
     initializeFromStorage()
     if (!isAuthenticated) {
-      navigate('/admin/login')
+      navigate('/')
     }
   }, [isAuthenticated, navigate, initializeFromStorage])
 
   // 处理登出
   const handleLogout = () => {
     logout()
-    navigate('/admin/login')
+    navigate('/')
   }
 
   if (!admin) {

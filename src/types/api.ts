@@ -22,30 +22,9 @@ export interface PaginationParams {
   pageSize?: number
 }
 
-// 用户相关类型
-export interface User {
-  id: number
-  username: string
-  email: string
-  createdAt: string
-  updatedAt: string
-}
-
-// 登录请求参数
-export interface LoginParams {
-  username: string
-  password: string
-}
-
-// 登录响应数据
-export interface LoginResponse {
-  token: string
-  user: User
-}
-
-// 注册请求参数
-export interface RegisterParams {
-  username: string
-  password: string
-  email: string
+// HTTP错误类型
+export interface HttpError {
+  code: number
+  message: string
+  status?: number
 }
