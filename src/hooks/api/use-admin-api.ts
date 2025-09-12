@@ -11,22 +11,22 @@ export function useAdminLogin() {
 
   const login = useCallback(async (params: AdminLoginRequest) => {
     try {
-      const data = await execute(() => adminApi.login(params))
+      const response = await execute(() => adminApi.login(params))
       
-      if (data) {
+      if (response) {
         // 保存管理员信息和token到localStorage
-        localStorage.setItem('admin_token', data.token)
-        localStorage.setItem('admin_info', JSON.stringify(data.admin))
+        localStorage.setItem('admin_token', response.token)
+        localStorage.setItem('admin_info', JSON.stringify(response.admin))
         
         // 更新全局状态
-        setAdmin(data.admin)
-        setToken(data.token)
+        setAdmin(response.admin)
+        setToken(response.token)
         setAuthenticated(true)
         
-        console.log('管理员登录成功:', data.admin.username)
+        console.log('管理员登录成功:', response.admin.username)
       }
       
-      return data
+      return response
     } catch (error) {
       console.error('管理员登录失败:', error)
       throw error

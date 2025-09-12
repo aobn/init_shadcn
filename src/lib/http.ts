@@ -11,7 +11,7 @@ export interface ApiResponse<T = unknown> {
 
 // 创建axios实例
 const http = axios.create({
-  baseURL: 'http://localhost:8080/api/',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -43,8 +43,8 @@ http.interceptors.response.use(
     
     // 检查业务状态码
     if (data.code === 200 || data.code === 201) {
-      // 返回完整的响应对象，保持类型一致性
-      return response
+      // 返回业务数据，这样API调用者可以直接获取data字段
+      return data as any
     }
     
     // 处理业务错误
@@ -61,9 +61,11 @@ http.interceptors.response.use(
           break
         case 401:
           console.error('未授权，请重新登录')
-          // 清除本地token并跳转到登录页
+          // 清除管理员token并跳转到登录页
+          localStorage.removeItem('admin_token')
+          localStorage.removeItem('admin_info')
           localStorage.removeItem('token')
-          window.location.href = '/login'
+          window.location.href = '/'
           break
         case 403:
           console.error('禁止访问:', data?.message)
