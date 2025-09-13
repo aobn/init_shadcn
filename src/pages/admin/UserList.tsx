@@ -2,7 +2,7 @@
  * 用户管理页面
  */
 import { useState, useEffect, useCallback } from 'react'
-import { Search, Filter, RefreshCw, Users, Calendar, Mail, User, Crown } from 'lucide-react'
+import { Search, Filter, RefreshCw, Users, Calendar, Mail, User, Crown, Eye } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -11,9 +11,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useUserList } from '@/hooks/api/use-user-api'
+import { UserDomainDialog } from '@/components/admin/UserDomainDialog'
 import type { 
   AdminUserQueryRequest,
-  UserRoleValue
+  UserRoleValue,
+  UserInfo
 } from '@/types/user'
 import {
   UserRoleOptions,
@@ -38,6 +40,17 @@ export default function UserList() {
   const [role, setRole] = useState<UserRoleValue | 'all'>('all')
   const [createTimeStart, setCreateTimeStart] = useState('')
   const [createTimeEnd, setCreateTimeEnd] = useState('')
+
+  // 用户域名弹窗状态
+  const [userDomainDialog, setUserDomainDialog] = useState<{
+    open: boolean
+    userId: number
+    username: string
+  }>({
+    open: false,
+    userId: 0,
+    username: ''
+  })
 
   // 初始化加载数据
   useEffect(() => {
@@ -124,6 +137,15 @@ export default function UserList() {
       date: date.toLocaleDateString(),
       time: date.toLocaleTimeString()
     }
+  }
+
+  // 查看用户域名
+  const handleViewUserDomains = (user: UserInfo) => {
+    setUserDomainDialog({
+      open: true,
+      userId: user.id,
+      username: user.username
+    })
   }
 
   return (
@@ -373,6 +395,7 @@ export default function UserList() {
                     <TableHead>统计信息</TableHead>
                     <TableHead>创建时间</TableHead>
                     <TableHead>更新时间</TableHead>
+                    <TableHead>操作</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -417,6 +440,18 @@ export default function UserList() {
                           <div className="space-y-1">
                             <div className="text-sm">{updateTime.date}</div>
                             <div className="text-xs text-muted-foreground">{updateTime.time}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleViewUserDomains(user)}
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              查看域名
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -473,6 +508,14 @@ export default function UserList() {
           )}
         </CardContent>
       </Card>
+
+      {/* 用户域名详情弹窗 */}
+      <UserDomainDialog
+        open={userDomainDialog.open}
+        onClose={() => setUserDomainDialog(prev => ({ ...prev, open: false }))}
+        userId={userDomainDialog.userId}
+        username={userDomainDialog.username}
+      />
     </div>
   )
 }
