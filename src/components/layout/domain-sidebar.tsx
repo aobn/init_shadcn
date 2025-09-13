@@ -7,7 +7,6 @@ import {
   Globe, 
   Settings, 
   Database, 
-  Shield, 
   BarChart3, 
   Users, 
   FileText,
@@ -47,12 +46,6 @@ const navigationItems = [
         href: '/admin/dns',
         icon: Database,
         description: '管理DNS解析记录'
-      },
-      {
-        title: 'SSL证书',
-        href: '/admin/ssl',
-        icon: Shield,
-        description: '管理SSL证书'
       }
     ]
   },

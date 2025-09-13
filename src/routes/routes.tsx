@@ -3,6 +3,8 @@ import AdminLogin from '@/pages/AdminLogin';
 import DomainDashboard from '@/pages/DomainDashboard';
 import AdminDashboard from '@/pages/admin/AdminDashboard';
 import DomainList from '@/pages/admin/DomainList';
+import DnsRecordList from '@/pages/admin/DnsRecordList';
+import UserList from '@/pages/admin/UserList';
 
 // 认证检查函数
 function checkAuth() {
@@ -45,6 +47,14 @@ const router = createBrowserRouter([
       {
         path: 'domains',
         element: <DomainList />
+      },
+      {
+        path: 'dns',
+        element: <DnsRecordList />
+      },
+      {
+        path: 'users',
+        element: <UserList />
       }
     ]
   }
