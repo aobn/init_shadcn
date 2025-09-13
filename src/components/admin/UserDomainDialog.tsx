@@ -2,7 +2,7 @@
  * 用户域名详情弹窗组件
  */
 import { useState, useEffect, useCallback } from 'react'
-import { Search, Globe, Calendar, Eye, RefreshCw } from 'lucide-react'
+import { Search, Globe, Eye, RefreshCw } from 'lucide-react'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'

@@ -2,7 +2,7 @@
  * 用户DNS记录详情弹窗组件
  */
 import { useState, useEffect, useCallback } from 'react'
-import { Search, Database, Calendar, RefreshCw } from 'lucide-react'
+import { Search, Database, RefreshCw } from 'lucide-react'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,8 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useUserDnsRecordList } from '@/hooks/api/use-user-dns-record-api'
 import type { 
-  AdminDnsRecordQueryRequest,
-  UserDnsRecordInfo
+  AdminDnsRecordQueryRequest
 } from '@/types/user-dns-record'
 import {
   DnsRecordTypeOptions,
@@ -42,7 +41,7 @@ export function UserDnsRecordDialog({ open, onClose, userId, username, domain, f
     sortBy: 'create_time',
     sortDir: 'DESC',
     userId: userId,
-    domain: domain
+    keyword: domain // 使用keyword字段进行域名搜索
   })
 
   // 表单状态
@@ -60,7 +59,7 @@ export function UserDnsRecordDialog({ open, onClose, userId, username, domain, f
         sortBy: 'create_time',
         sortDir: 'DESC',
         userId: userId,
-        domain: domain
+        keyword: domain
       }
       setSearchParams(initialParams)
       fetchUserDnsRecords(initialParams)
@@ -76,8 +75,7 @@ export function UserDnsRecordDialog({ open, onClose, userId, username, domain, f
       recordType: recordType === 'all' ? undefined : recordType,
       status: status === 'all' ? undefined : status,
       syncStatus: syncStatus === 'all' ? undefined : syncStatus,
-      userId: userId,
-      domain: domain
+      userId: userId
     }
     
     console.log('用户DNS记录搜索参数:', params)
@@ -98,8 +96,7 @@ export function UserDnsRecordDialog({ open, onClose, userId, username, domain, f
       size: 20,
       sortBy: 'create_time',
       sortDir: 'DESC',
-      userId: userId,
-      domain: domain
+      userId: userId
     }
     
     setSearchParams(params)

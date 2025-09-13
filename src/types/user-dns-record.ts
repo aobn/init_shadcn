@@ -42,7 +42,6 @@ export interface AdminDnsRecordQueryRequest {
   recordType?: string
   status?: string
   syncStatus?: string
-  domain?: string
 }
 
 // 用户DNS记录查询响应
