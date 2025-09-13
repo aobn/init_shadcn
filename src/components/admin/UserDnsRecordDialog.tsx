@@ -169,8 +169,8 @@ export function UserDnsRecordDialog({ open, onClose, userId, username, domain, f
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="w-[95vw] max-w-7xl h-[90vh] max-h-[90vh] flex flex-col p-0">
+        <DialogHeader className="px-6 py-4 border-b">
           <DialogTitle className="flex items-center gap-2">
             <Database className="h-5 w-5" />
             {fullDomain} 的DNS记录
@@ -180,9 +180,9 @@ export function UserDnsRecordDialog({ open, onClose, userId, username, domain, f
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="flex-1 overflow-hidden flex flex-col px-6 py-4 space-y-4">
           {/* 搜索筛选区域 */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 border rounded-lg">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 border rounded-lg flex-shrink-0">
             <div className="space-y-2">
               <label className="text-sm font-medium">关键词搜索</label>
               <Input
@@ -287,7 +287,7 @@ export function UserDnsRecordDialog({ open, onClose, userId, username, domain, f
           </div>
 
           {/* DNS记录列表 */}
-          <div className="border rounded-lg">
+          <div className="border rounded-lg flex-1 overflow-hidden flex flex-col">
             {loading ? (
               // 加载骨架屏
               <div className="p-4 space-y-3">
@@ -310,7 +310,8 @@ export function UserDnsRecordDialog({ open, onClose, userId, username, domain, f
               </div>
             ) : (
               // DNS记录表格
-              <Table>
+              <div className="overflow-y-auto flex-1">
+                <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>主机记录</TableHead>
@@ -364,7 +365,8 @@ export function UserDnsRecordDialog({ open, onClose, userId, username, domain, f
                     )
                   })}
                 </TableBody>
-              </Table>
+                </Table>
+              </div>
             )}
 
             {/* 分页控件 */}

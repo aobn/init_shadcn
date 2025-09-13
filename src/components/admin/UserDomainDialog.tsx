@@ -159,8 +159,8 @@ export function UserDomainDialog({ open, onClose, userId, username }: UserDomain
   return (
     <>
       <Dialog open={open} onOpenChange={onClose}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="w-[95vw] max-w-6xl h-[90vh] max-h-[90vh] flex flex-col p-0">
+          <DialogHeader className="px-6 py-4 border-b">
             <DialogTitle className="flex items-center gap-2">
               <Globe className="h-5 w-5" />
               {username} 的域名列表
@@ -170,9 +170,9 @@ export function UserDomainDialog({ open, onClose, userId, username }: UserDomain
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="flex-1 overflow-hidden flex flex-col px-6 py-4 space-y-4">
             {/* 搜索筛选区域 */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border rounded-lg">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border rounded-lg flex-shrink-0">
               <div className="space-y-2">
                 <label className="text-sm font-medium">关键词搜索</label>
                 <Input
@@ -246,10 +246,10 @@ export function UserDomainDialog({ open, onClose, userId, username }: UserDomain
             </div>
 
             {/* 域名列表 */}
-            <div className="border rounded-lg">
+            <div className="border rounded-lg flex-1 overflow-hidden flex flex-col">
               {loading ? (
                 // 加载骨架屏
-                <div className="p-4 space-y-3">
+                <div className="p-4 space-y-3 overflow-y-auto">
                   {Array.from({ length: 5 }).map((_, index) => (
                     <div key={index} className="flex items-center space-x-4">
                       <Skeleton className="h-4 w-[200px]" />
@@ -268,7 +268,8 @@ export function UserDomainDialog({ open, onClose, userId, username }: UserDomain
                 </div>
               ) : (
                 // 域名表格
-                <Table>
+                <div className="overflow-y-auto flex-1">
+                  <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>域名信息</TableHead>
@@ -320,7 +321,8 @@ export function UserDomainDialog({ open, onClose, userId, username }: UserDomain
                       )
                     })}
                   </TableBody>
-                </Table>
+                  </Table>
+                </div>
               )}
 
               {/* 分页控件 */}
