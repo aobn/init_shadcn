@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -14,7 +14,7 @@ const AdminLogin: React.FC = () => {
   const navigate = useNavigate()
   const { login, loading, error } = useAdminLogin()
   const { logout } = useAdminLogout()
-  const { admin, isAuthenticated, initializeFromStorage } = useAdminStore()
+  const { admin, isAuthenticated } = useAdminStore()
   
   const [formData, setFormData] = useState({
     username: '',
@@ -26,13 +26,12 @@ const AdminLogin: React.FC = () => {
     password: ''
   })
 
-  // 初始化时检查是否已登录
-  useEffect(() => {
-    initializeFromStorage()
-    if (isAuthenticated) {
-      navigate('/admin/dashboard')
-    }
-  }, [initializeFromStorage, isAuthenticated, navigate])
+  // 登录成功后的重定向现在由路由 loader 处理
+  // useEffect(() => {
+  //   if (isAuthenticated) {
+  //     navigate('/admin/dashboard')
+  //   }
+  // }, [isAuthenticated, navigate])
 
   // 处理表单输入
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

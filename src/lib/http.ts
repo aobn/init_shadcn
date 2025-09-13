@@ -1,5 +1,6 @@
 import axios from 'axios'
 import type { AxiosResponse, AxiosError } from 'axios'
+import { useAdminStore } from '@/store/admin-store'
 
 // API响应接口定义
 export interface ApiResponse<T = unknown> {
@@ -61,11 +62,23 @@ http.interceptors.response.use(
           break
         case 401:
           console.error('未授权，请重新登录')
-          // 清除管理员token并跳转到登录页
+          // 清除管理员token
           localStorage.removeItem('admin_token')
           localStorage.removeItem('admin_info')
           localStorage.removeItem('token')
-          window.location.href = '/'
+          
+          // 同时清除Zustand状态
+          const adminStore = useAdminStore.getState()
+          adminStore.clearAdmin()
+          
+          // 避免重复重定向，检查当前是否已经在登录页
+          const currentPath = window.location.pathname
+          if (currentPath !== '/') {
+            // 使用setTimeout避免在响应处理过程中立即重定向
+            setTimeout(() => {
+              window.location.replace('/')
+            }, 100)
+          }
           break
         case 403:
           console.error('禁止访问:', data?.message)

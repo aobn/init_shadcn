@@ -50,20 +50,27 @@ export const useAdminStore = create<AdminStore>()(
           
           if (token && adminInfo) {
             const admin = JSON.parse(adminInfo)
-            set({
-              admin,
-              adminInfo: admin,
-              token,
-              isAuthenticated: true,
-            })
+            // 只有当前状态未认证时才更新状态，避免无限循环
+            const currentState = get()
+            if (!currentState.isAuthenticated) {
+              set({
+                admin,
+                adminInfo: admin,
+                token,
+                isAuthenticated: true,
+              })
+            }
           } else {
-            // 如果没有token或adminInfo，确保状态为未认证
-            set({
-              admin: null,
-              adminInfo: null,
-              token: null,
-              isAuthenticated: false,
-            })
+            // 如果没有有效的登录信息，确保清除状态
+            const currentState = get()
+            if (currentState.isAuthenticated) {
+              set({
+                admin: null,
+                adminInfo: null,
+                token: null,
+                isAuthenticated: false,
+              })
+            }
           }
         } catch (error) {
           console.error('初始化管理员状态失败:', error)

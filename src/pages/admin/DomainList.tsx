@@ -65,20 +65,22 @@ export default function DomainList() {
     sortDir: SortDirection.DESC
   })
   
-  // 筛选状态
+  // 搜索和筛选状态
+  const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('')
   const [domainFilter, setDomainFilter] = useState<string>('')
 
   // 初始加载数据
   useEffect(() => {
     fetchUserDomains(queryParams)
-  }, [fetchUserDomains])
+  }, []) // 只在组件挂载时执行一次
 
-  // 处理筛选
+  // 处理搜索
   const handleSearch = () => {
     const newParams = {
       ...queryParams,
       page: 1, // 重置到第一页
+      keyword: searchTerm || undefined,
       status: statusFilter || undefined,
       domain: domainFilter || undefined
     }
@@ -179,43 +181,57 @@ export default function DomainList() {
         </div>
       </div>
 
-      {/* 筛选 */}
+      {/* 搜索和筛选 */}
       <Card>
         <CardHeader>
-          <CardTitle>筛选</CardTitle>
+          <CardTitle>搜索和筛选</CardTitle>
           <CardDescription>
-            按状态和主域名筛选域名列表
+            支持按用户名、邮箱、域名等关键词搜索，以及状态和主域名筛选
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center space-x-4">
-            <Select value={statusFilter || "all"} onValueChange={(value) => setStatusFilter(value === "all" ? "" : value)}>
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="状态筛选" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">全部状态</SelectItem>
-                <SelectItem value={DomainStatus.ACTIVE}>正常</SelectItem>
-                <SelectItem value={DomainStatus.INACTIVE}>未激活</SelectItem>
-                <SelectItem value={DomainStatus.DELETED}>已删除</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center space-x-4">
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="搜索用户名、邮箱、域名..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                />
+              </div>
+              
+              <Select value={statusFilter || "all"} onValueChange={(value) => setStatusFilter(value === "all" ? "" : value)}>
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="状态筛选" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">全部状态</SelectItem>
+                  <SelectItem value={DomainStatus.ACTIVE}>正常</SelectItem>
+                  <SelectItem value={DomainStatus.INACTIVE}>未激活</SelectItem>
+                  <SelectItem value={DomainStatus.DELETED}>已删除</SelectItem>
+                </SelectContent>
+              </Select>
 
-            <Select value={domainFilter || "all"} onValueChange={(value) => setDomainFilter(value === "all" ? "" : value)}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="主域名筛选" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">全部域名</SelectItem>
-                {uniqueDomains.map(domain => (
-                  <SelectItem key={domain} value={domain}>{domain}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <Select value={domainFilter || "all"} onValueChange={(value) => setDomainFilter(value === "all" ? "" : value)}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="主域名筛选" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">全部域名</SelectItem>
+                  {uniqueDomains.map(domain => (
+                    <SelectItem key={domain} value={domain}>{domain}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-            <Button onClick={handleSearch} disabled={loading}>
-              筛选
-            </Button>
+              <Button onClick={handleSearch} disabled={loading}>
+                <Search className="mr-2 h-4 w-4" />
+                搜索
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -427,8 +443,8 @@ export default function DomainList() {
               <Globe className="mx-auto h-12 w-12 text-muted-foreground" />
               <h3 className="mt-4 text-lg font-semibold">暂无域名数据</h3>
               <p className="mt-2 text-sm text-muted-foreground">
-                {statusFilter || domainFilter 
-                  ? '没有找到符合条件的域名，请尝试调整筛选条件' 
+                {searchTerm || statusFilter || domainFilter 
+                  ? '没有找到符合条件的域名，请尝试调整搜索条件' 
                   : '还没有用户注册域名'}
               </p>
             </div>
