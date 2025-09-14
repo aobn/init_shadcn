@@ -10,6 +10,14 @@ export const UserRole = {
 
 export type UserRoleValue = typeof UserRole[keyof typeof UserRole]
 
+// 用户状态枚举
+export const UserStatus = {
+  ACTIVE: 'ACTIVE',
+  BANNED: 'BANNED'
+} as const
+
+export type UserStatusValue = typeof UserStatus[keyof typeof UserStatus]
+
 // 用户信息接口
 export interface UserInfo {
   id: number
@@ -21,7 +29,11 @@ export interface UserInfo {
   domainCount: number
   dnsRecordCount: number
   lastLoginTime: string | null
-  status: string | null
+  status: UserStatusValue
+  banReason: string | null
+  banTime: string | null
+  banAdminId: number | null
+  domNum: number
 }
 
 // 用户查询请求参数
@@ -33,6 +45,7 @@ export interface AdminUserQueryRequest {
   keyword?: string
   userId?: number
   role?: UserRoleValue
+  status?: UserStatusValue
   createTimeStart?: string
   createTimeEnd?: string
 }
@@ -74,4 +87,10 @@ export const UserSortDirOptions = [
 export const UserRoleOptions = [
   { value: 'USER', label: '普通用户' },
   { value: 'ADMIN', label: '管理员' }
+] as const
+
+// 用户状态选项
+export const UserStatusOptions = [
+  { value: 'ACTIVE', label: '正常' },
+  { value: 'BANNED', label: '封禁' }
 ] as const

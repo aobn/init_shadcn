@@ -12,13 +12,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Skeleton } from '@/components/ui/skeleton'
 import { useUserList } from '@/hooks/api/use-user-api'
 import { UserDomainDialog } from '@/components/admin/UserDomainDialog'
+import { UserBanDialog } from '@/components/admin/UserBanDialog'
 import type { 
   AdminUserQueryRequest,
   UserRoleValue,
+  UserStatusValue,
   UserInfo
 } from '@/types/user'
 import {
   UserRoleOptions,
+  UserStatusOptions,
   UserSortByOptions,
   UserSortDirOptions
 } from '@/types/user'
@@ -38,6 +41,7 @@ export default function UserList() {
   const [keyword, setKeyword] = useState('')
   const [userId, setUserId] = useState('')
   const [role, setRole] = useState<UserRoleValue | 'all'>('all')
+  const [status, setStatus] = useState<UserStatusValue | 'all'>('all')
   const [createTimeStart, setCreateTimeStart] = useState('')
   const [createTimeEnd, setCreateTimeEnd] = useState('')
 
@@ -50,6 +54,15 @@ export default function UserList() {
     open: false,
     userId: 0,
     username: ''
+  })
+
+  // 用户封禁对话框状态
+  const [banDialog, setBanDialog] = useState<{
+    open: boolean
+    user: UserInfo | null
+  }>({
+    open: false,
+    user: null
   })
 
   // 初始化加载数据
@@ -72,6 +85,7 @@ export default function UserList() {
       keyword: keyword.trim() || undefined,
       userId: userId.trim() ? parseInt(userId.trim()) : undefined,
       role: role === 'all' ? undefined : role,
+      status: status === 'all' ? undefined : status,
       createTimeStart: createTimeStart || undefined,
       createTimeEnd: createTimeEnd || undefined
     }
@@ -81,13 +95,14 @@ export default function UserList() {
     
     setSearchParams(params)
     fetchUsers(params)
-  }, [searchParams, keyword, userId, role, createTimeStart, createTimeEnd, fetchUsers])
+  }, [searchParams, keyword, userId, role, status, createTimeStart, createTimeEnd, fetchUsers])
 
   // 重置搜索
   const handleReset = useCallback(() => {
     setKeyword('')
     setUserId('')
     setRole('all')
+    setStatus('all')
     setCreateTimeStart('')
     setCreateTimeEnd('')
     
@@ -248,8 +263,8 @@ export default function UserList() {
             </div>
           </div>
 
-          {/* 第二行：角色筛选 */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* 第二行：角色和状态筛选 */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">用户角色</label>
               <Select value={role} onValueChange={(value) => setRole(value as UserRoleValue | 'all')}>
@@ -259,6 +274,22 @@ export default function UserList() {
                 <SelectContent>
                   <SelectItem value="all">全部角色</SelectItem>
                   {UserRoleOptions.map(option => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">账户状态</label>
+              <Select value={status} onValueChange={(value) => setStatus(value as UserStatusValue | 'all')}>
+                <SelectTrigger>
+                  <SelectValue placeholder="选择账户状态" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">全部状态</SelectItem>
+                  {UserStatusOptions.map(option => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
                     </SelectItem>
@@ -393,15 +424,17 @@ export default function UserList() {
                     <TableHead>用户信息</TableHead>
                     <TableHead>角色</TableHead>
                     <TableHead>统计信息</TableHead>
+                    <TableHead>最后登录</TableHead>
                     <TableHead>创建时间</TableHead>
-                    <TableHead>更新时间</TableHead>
+                    <TableHead>封禁信息</TableHead>
                     <TableHead>操作</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {users.map((user) => {
                     const createTime = formatDateTime(user.createTime)
-                    const updateTime = formatDateTime(user.updateTime)
+                    const lastLoginTime = user.lastLoginTime ? formatDateTime(user.lastLoginTime) : null
+                    const banTime = user.banTime ? formatDateTime(user.banTime) : null
                     
                     return (
                       <TableRow key={user.id}>
@@ -410,7 +443,12 @@ export default function UserList() {
                         </TableCell>
                         <TableCell>
                           <div className="space-y-1">
-                            <div className="font-medium">{user.username}</div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{user.username}</span>
+                              <Badge variant={user.status === "ACTIVE" ? "default" : "destructive"}>
+                                {user.status === "ACTIVE" ? "正常" : "封禁"}
+                              </Badge>
+                            </div>
                             <div className="flex items-center text-sm text-muted-foreground">
                               <Mail className="w-3 h-3 mr-1" />
                               {user.email}
@@ -428,6 +466,21 @@ export default function UserList() {
                             <div className="text-sm text-muted-foreground">
                               <span className="font-medium">{user.dnsRecordCount}</span> 条DNS记录
                             </div>
+                            <div className="text-xs text-muted-foreground">
+                              限制: {user.domNum} 个域名
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            {lastLoginTime ? (
+                              <>
+                                <div className="text-sm">{lastLoginTime.date}</div>
+                                <div className="text-xs text-muted-foreground">{lastLoginTime.time}</div>
+                              </>
+                            ) : (
+                              <div className="text-sm text-muted-foreground">从未登录</div>
+                            )}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -437,10 +490,23 @@ export default function UserList() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="space-y-1">
-                            <div className="text-sm">{updateTime.date}</div>
-                            <div className="text-xs text-muted-foreground">{updateTime.time}</div>
-                          </div>
+                          {user.status === "BANNED" ? (
+                            <div className="space-y-1">
+                              <div className="text-sm text-red-600 font-medium">已封禁</div>
+                              {user.banReason && (
+                                <div className="text-xs text-muted-foreground max-w-32 truncate" title={user.banReason}>
+                                  {user.banReason}
+                                </div>
+                              )}
+                              {banTime && (
+                                <div className="text-xs text-muted-foreground">
+                                  {banTime.date}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="text-sm text-green-600">正常</div>
+                          )}
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
@@ -451,6 +517,13 @@ export default function UserList() {
                             >
                               <Eye className="h-4 w-4 mr-1" />
                               查看域名
+                            </Button>
+                            <Button
+                              variant={user.status === "ACTIVE" ? "destructive" : "default"}
+                              size="sm"
+                              onClick={() => setBanDialog({ open: true, user })}
+                            >
+                              {user.status === "ACTIVE" ? '封禁' : '解封'}
                             </Button>
                           </div>
                         </TableCell>
@@ -515,6 +588,17 @@ export default function UserList() {
         onClose={() => setUserDomainDialog(prev => ({ ...prev, open: false }))}
         userId={userDomainDialog.userId}
         username={userDomainDialog.username}
+      />
+
+      {/* 用户封禁对话框 */}
+      <UserBanDialog
+        open={banDialog.open}
+        onOpenChange={(open) => setBanDialog(prev => ({ ...prev, open }))}
+        user={banDialog.user}
+        onSuccess={() => {
+          setBanDialog({ open: false, user: null })
+          handleSearch() // 刷新用户列表
+        }}
       />
     </div>
   )

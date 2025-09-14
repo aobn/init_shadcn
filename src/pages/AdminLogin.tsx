@@ -8,7 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { useAdminLogin, useAdminLogout } from '@/hooks/api/use-admin-api'
 import { useAdminStore } from '@/store/admin-store'
-import { AdminLoginTest } from '@/components/admin-login-test'
+
 
 const AdminLogin: React.FC = () => {
   const navigate = useNavigate()
@@ -248,8 +248,7 @@ const AdminLogin: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* API测试组件 */}
-        <AdminLoginTest />
+
       </div>
     </div>
   )

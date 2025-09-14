@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Skeleton } from '@/components/ui/skeleton'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useUserDomainList } from '@/hooks/api/use-user-domain-api'
-import { UserDnsRecordDialog } from './UserDnsRecordDialog'
+import { UserDnsRecordDialog } from '@/components/admin/UserDnsRecordDialog'
 import type { 
   AdminUserDomainQueryRequest,
   UserDomainInfo
