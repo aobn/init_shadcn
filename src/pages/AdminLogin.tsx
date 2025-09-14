@@ -101,13 +101,7 @@ const AdminLogin: React.FC = () => {
     setFormErrors({ username: '', password: '' })
   }
 
-  // 使用测试账号快速登录
-  const handleTestLogin = () => {
-    setFormData({
-      username: 'admin',
-      password: 'admin'
-    })
-  }
+
 
   // 如果已登录，显示登录状态
   if (isAuthenticated && admin) {
@@ -219,32 +213,16 @@ const AdminLogin: React.FC = () => {
                 </Alert>
               )}
 
-              <div className="space-y-2">
-                <Button 
-                  type="submit" 
-                  className="w-full" 
-                  disabled={loading}
-                >
-                  {loading ? '登录中...' : '登录'}
-                </Button>
-                
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  className="w-full" 
-                  onClick={handleTestLogin}
-                  disabled={loading}
-                >
-                  使用测试账号
-                </Button>
-              </div>
+              <Button 
+                type="submit" 
+                className="w-full" 
+                disabled={loading}
+              >
+                {loading ? '登录中...' : '登录'}
+              </Button>
             </form>
 
-            <div className="mt-6 text-center text-sm text-muted-foreground">
-              <p>测试账号信息：</p>
-              <p>用户名: admin</p>
-              <p>密码: admin</p>
-            </div>
+
           </CardContent>
         </Card>
 
