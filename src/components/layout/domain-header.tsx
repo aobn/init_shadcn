@@ -11,8 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { ModeToggle } from '@/components/mode-toggle'
-import { Bell, Search, Settings, LogOut, User } from 'lucide-react'
-import { Input } from '@/components/ui/input'
+import { Bell, Settings, LogOut, User } from 'lucide-react'
 import { useAdminStore } from '@/store/admin-store'
 import { useAdminLogout } from '@/hooks/api/use-admin-api'
 

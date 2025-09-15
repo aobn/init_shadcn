@@ -4,9 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { 
   Globe, 
-  Database, 
   Shield, 
-  TrendingUp, 
   AlertTriangle,
   CheckCircle,
   Clock,
