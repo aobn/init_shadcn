@@ -160,9 +160,8 @@ const AdminLogin: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="flex flex-col lg:flex-row gap-6 w-full max-w-4xl">
-        {/* 登录表单 */}
-        <Card className="w-full max-w-md">
+      {/* 登录表单 */}
+      <Card className="w-full max-w-md">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl text-center">管理员登录</CardTitle>
             <p className="text-sm text-muted-foreground text-center">
@@ -225,9 +224,6 @@ const AdminLogin: React.FC = () => {
 
           </CardContent>
         </Card>
-
-
-      </div>
     </div>
   )
 }

@@ -43,19 +43,8 @@ export function DomainHeader({ children }: DomainHeaderProps) {
         {/* 移动端菜单按钮 */}
         {children}
 
-        {/* 搜索框 */}
-        <div className="flex-1 max-w-md">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="搜索域名、DNS记录..."
-              className="pl-10"
-            />
-          </div>
-        </div>
-
         {/* 右侧功能区 */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 ml-auto">
           {/* 通知按钮 */}
           <Button variant="ghost" size="sm" className="relative">
             <Bell className="h-4 w-4" />

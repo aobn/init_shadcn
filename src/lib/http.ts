@@ -12,7 +12,7 @@ export interface ApiResponse<T = unknown> {
 
 // 创建axios实例
 const http = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://db.webdom.goxi.top/api/',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

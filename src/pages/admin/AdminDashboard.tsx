@@ -126,122 +126,38 @@ export default function AdminDashboard() {
         </Card>
       </div>
 
-      {/* 内容区域 */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* 最近域名 */}
-        <Card>
-          <CardHeader>
-            <CardTitle>最近域名</CardTitle>
-            <CardDescription>
-              最近添加或更新的域名列表
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentDomains.map((domain, index) => (
-                <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <Globe className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <p className="font-medium">{domain.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        过期时间: {domain.expiryDate}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    {domain.ssl && <Shield className="h-4 w-4 text-green-500" />}
-                    {getStatusBadge(domain.status)}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* 系统状态 */}
-        <Card>
-          <CardHeader>
-            <CardTitle>系统状态</CardTitle>
-            <CardDescription>
-              系统各项服务运行状态
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Database className="h-4 w-4" />
-                  <span>DNS服务</span>
-                </div>
-                <Badge variant="default" className="bg-green-500">
-                  <CheckCircle className="w-3 h-3 mr-1" />正常
-                </Badge>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Shield className="h-4 w-4" />
-                  <span>SSL证书服务</span>
-                </div>
-                <Badge variant="default" className="bg-green-500">
-                  <CheckCircle className="w-3 h-3 mr-1" />正常
-                </Badge>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <TrendingUp className="h-4 w-4" />
-                  <span>监控服务</span>
-                </div>
-                <Badge variant="default" className="bg-green-500">
-                  <CheckCircle className="w-3 h-3 mr-1" />正常
-                </Badge>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Globe className="h-4 w-4" />
-                  <span>域名解析</span>
-                </div>
-                <Badge variant="secondary">
-                  <AlertTriangle className="w-3 h-3 mr-1" />维护中
-                </Badge>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* 快速操作 */}
+      {/* 最近域名 */}
       <Card>
         <CardHeader>
-          <CardTitle>快速操作</CardTitle>
+          <CardTitle>最近域名</CardTitle>
           <CardDescription>
-            常用功能快速入口
+            最近添加或更新的域名列表
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Button variant="outline" className="h-20 flex-col">
-              <Plus className="h-6 w-6 mb-2" />
-              添加域名
-            </Button>
-            <Button variant="outline" className="h-20 flex-col">
-              <Database className="h-6 w-6 mb-2" />
-              DNS设置
-            </Button>
-            <Button variant="outline" className="h-20 flex-col">
-              <Shield className="h-6 w-6 mb-2" />
-              SSL证书
-            </Button>
-            <Button variant="outline" className="h-20 flex-col">
-              <TrendingUp className="h-6 w-6 mb-2" />
-              查看统计
-            </Button>
+          <div className="space-y-4">
+            {recentDomains.map((domain, index) => (
+              <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <Globe className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="font-medium">{domain.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      过期时间: {domain.expiryDate}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  {domain.ssl && <Shield className="h-4 w-4 text-green-500" />}
+                  {getStatusBadge(domain.status)}
+                </div>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
+
+
     </div>
   )
 }
