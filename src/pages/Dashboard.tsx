@@ -1,4 +1,4 @@
-import React from 'react'
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { 
@@ -9,7 +9,7 @@ import {
   Calendar,
   AlertTriangle
 } from 'lucide-react'
-import { mockDashboardStats, mockUsers, mockDomains } from '@/data/mock-data'
+import { mockDashboardStats, mockUsers } from '@/data/mock-data'
 
 export default function Dashboard() {
   const stats = mockDashboardStats

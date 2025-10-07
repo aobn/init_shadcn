@@ -38,17 +38,17 @@ http.interceptors.request.use(
 
 // 响应拦截器
 http.interceptors.response.use(
-  (response: AxiosResponse<ApiResponse<unknown>>) => {
-    const { data } = response
-    
+  (response) => {
+    const data = (response as AxiosResponse<ApiResponse<unknown>>).data;
+
     // 检查业务状态码
-    if (data.code === 200 || data.code === 201) {
-      // 返回业务数据，这样API调用者可以直接获取data字段
-      return data as ApiResponse<unknown>
+    if (data && (data.code === 200 || data.code === 201)) {
+      // 返回原始响应，保持类型一致，让调用方自行从 response.data 读取业务数据
+      return response;
     }
-    
+
     // 处理业务错误
-    return Promise.reject(new Error(data.message || '请求失败'))
+    return Promise.reject(new Error((data as any)?.message || '请求失败'));
   },
   (error: AxiosError<ApiResponse>) => {
     // 处理HTTP错误

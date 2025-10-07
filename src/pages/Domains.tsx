@@ -33,8 +33,7 @@ import {
   Search, 
   Edit, 
   Trash2, 
-  RefreshCw,
-  AlertTriangle
+  RefreshCw
 } from 'lucide-react'
 import { mockDomains, mockUsers, mockDelay } from '@/data/mock-data'
 import type { Domain, DomainFormData } from '@/types/domain'

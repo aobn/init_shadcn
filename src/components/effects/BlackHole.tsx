@@ -4,19 +4,17 @@ interface BlackHoleProps {
   className?: string;
   initialScale?: number;
   maxScale?: number;
-  scrollSensitivity?: number;
 }
 
 const BlackHole: React.FC<BlackHoleProps> = ({
   className = '',
   initialScale = 0.3,
-  maxScale = 1.5,
-  scrollSensitivity = 0.001
+  maxScale = 1.5
 }) => {
   const blackHoleRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(initialScale);
   const [rotation, setRotation] = useState(0);
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | null>(null);
 
   // 滚动处理函数 - 使用useCallback优化性能
   const handleScroll = useCallback(() => {

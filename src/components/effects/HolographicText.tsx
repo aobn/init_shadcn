@@ -137,7 +137,7 @@ const HolographicText: React.FC<HolographicTextProps> = ({
         </div>
       )}
 
-      <style jsx>{`
+      <style>{`
         @keyframes scanLine {
           0% { transform: translateX(-100%); }
           100% { transform: translateX(100%); }

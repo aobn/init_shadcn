@@ -138,7 +138,7 @@ const SmartCursor: React.FC = () => {
       </div>
 
       {/* 全局样式 */}
-      <style jsx global>{`
+      <style>{`
         * {
           cursor: none !important;
         }

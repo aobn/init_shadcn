@@ -1,8 +1,8 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import { Sidebar } from './sidebar'
 import { Header } from './header'
-import { cn } from '@/lib/utils'
+
 
 export function MainLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)

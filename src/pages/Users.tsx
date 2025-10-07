@@ -33,7 +33,6 @@ import {
   Search, 
   Edit, 
   Trash2, 
-  AlertTriangle,
   Globe
 } from 'lucide-react'
 import { mockUsers, mockDomains, mockDelay } from '@/data/mock-data'
