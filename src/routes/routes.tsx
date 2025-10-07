@@ -5,10 +5,15 @@ import Dashboard from '@/pages/Dashboard';
 import Users from '@/pages/Users';
 import Domains from '@/pages/Domains';
 import DnsRecords from '@/pages/DnsRecords';
+import AIShowcase from '@/pages/AIShowcase';
 
 const router = createBrowserRouter([
   {
     path: '/',
+    element: <AIShowcase />
+  },
+  {
+    path: '/admin-login',
     element: <AdminLogin />
   },
   {
