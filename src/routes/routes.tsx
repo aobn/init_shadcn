@@ -1,15 +1,16 @@
 import { createBrowserRouter } from 'react-router-dom';
-import AdminLogin from '@/pages/AdminLogin';
+
 import MainLayout from '@/components/layout/main-layout';
 import Dashboard from '@/pages/Dashboard';
 import Users from '@/pages/Users';
 import Domains from '@/pages/Domains';
 import DnsRecords from '@/pages/DnsRecords';
+import Chat from '@/pages/Chat';
 
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <AdminLogin />
+    element: <Chat />
   },
   {
     path: '/admin',

@@ -1,4 +1,4 @@
-import React from 'react'
+
 import { Button } from '@/components/ui/button'
 import { ModeToggle } from '@/components/layout/mode-toggle'
 import { Menu, Bell } from 'lucide-react'

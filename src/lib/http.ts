@@ -40,15 +40,15 @@ http.interceptors.request.use(
 http.interceptors.response.use(
   (response: AxiosResponse<ApiResponse<unknown>>) => {
     const { data } = response
-    
+
     // 检查业务状态码
-    if (data.code === 200 || data.code === 201) {
-      // 返回业务数据，这样API调用者可以直接获取data字段
-      return data as ApiResponse<unknown>
+    if (data && (data.code === 200 || data.code === 201)) {
+      // 返回 AxiosResponse，满足拦截器类型要求
+      return response as AxiosResponse<ApiResponse<unknown>>
     }
-    
+
     // 处理业务错误
-    return Promise.reject(new Error(data.message || '请求失败'))
+    return Promise.reject(new Error(data?.message || '请求失败'))
   },
   (error: AxiosError<ApiResponse>) => {
     // 处理HTTP错误
