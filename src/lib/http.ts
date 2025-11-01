@@ -11,7 +11,7 @@ export interface ApiResponse<T = unknown> {
 
 // 创建axios实例
 const http = axios.create({
-  baseURL: 'http://localhost:8080/api/',
+  baseURL: 'http://db.webdom2.goxi.top/api/',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
